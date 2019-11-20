@@ -31,10 +31,10 @@ def printBanner():
 	print("[!] WARNING! This script only will work if sshguard is already installed.")   
 	print(colors.RESET)
 
-def menu():
-    print(colors.YELLOW + "--- MAIN MENU ---")
+def menu():  
     i = ""
     while(i != "x"):
+        print(colors.YELLOW + "--- MAIN MENU ---")
         print("Select option: ")
         print(" [1] Protect ports.")
         if getOS() == "Linux":
@@ -44,7 +44,7 @@ def menu():
         if i == "1":
             menu_ports()
         elif i == "2":
-            print("2")
+            menu_whitelist()
         else:
             print("Invalid option.")
     if i == "x":
