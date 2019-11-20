@@ -1,12 +1,20 @@
 import os
 import re
 import platform
-from colorama import Fore, Back, Style
 
 FILEPATH_OSX_PLANT = "osx-conf.txt"
 FILEPATH_OSX_CONFIG = "/etc/pf.conf"
 FILEPATH_BANNER = "banner.txt"
 PLANTILLA =  "### __SSHGUARD-CONFIG___ ###"
+
+class colors:
+	RED = '\u001b[31m'
+	GREEN = '\u001b[32m'
+	YELLOW = '\u001b[33m'
+	BLUE = '\u001b[34m'
+	MAGENTA = '\u001b[35m'
+	CYAN = '\u001b[36m'
+	RESET = '\u001b[0m'
 
 def getOS():
     if platform.system() == "Darwin":
@@ -16,19 +24,19 @@ def getOS():
 def printBanner():
     with open(FILEPATH_BANNER, 'r') as file:
         f = file.read()
-    print(Fore.RED + f + "\n")
-    print(Fore.BLUE + "Running on " + getOS() + " system")    
-    print(Style.RESET_ALL)
+    print(colors.RED + f + "\n")
+    print(colors.BLUE + "Running on " + getOS() + " system")    
+    print(colors.RESET)
 
 def menu():
-    i = input(Fore.YELLOW + "Input ports to be secured by sshguard, separated by spaces (f.e. 22 80 25): " + Style.RESET_ALL)
+    i = input(colors.YELLOW + "Input ports to be secured by sshguard, separated by spaces (f.e. 22 80 25): " + colors.RESET)
     ports = list(map(int, re.findall('\d+', i)))
     print(ports)
     if getOS() == "OSX":
         setConfigOSX(ports)
         
 def setConfigOSX(ports):
-    print(Fore.YELLOW + "Configuring sshguard in OSX...")
+    print(colors.YELLOW + "Configuring sshguard in OSX...")
     # Recibir plantilla de configuración
     with open(FILEPATH_OSX_PLANT, 'r') as file:
         f = file.read()
@@ -69,7 +77,7 @@ def setConfigOSX(ports):
     # Ejecutar sshguard
     print("Executing sshguard...")
     os.system("launchctl load /Library/LaunchDaemons/homebrew.mxcl.sshguard.plist")
-    print("Done." + Style.RESET_ALL)
+    print("Done." + colors.RESET)
 
 #setConfigOSX([22]);
 printBanner()
