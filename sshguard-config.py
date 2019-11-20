@@ -2,6 +2,7 @@ import os
 import re
 import platform
 import socket
+import ipaddress
 
 FILEPATH_OSX_PLANT = "osx-conf.txt"
 FILEPATH_OSX_CONFIG = "/etc/pf.conf"
@@ -31,38 +32,49 @@ def printBanner():
 	print(colors.RESET)
 
 def menu():
-	print(colors.YELLOW + "Select option: ")
-	print(" [1] Protect ports.")
-	print(" [2] Whitelist addresses.")
-	print(" [x] Exit.")
-	i = input("> ")
-	while(i != "x"):
-		if i == "1":
-			print("1")
-		elif i == "2":
-			print("2")
-		else:
-			print("Invalid option.")	
+    print(colors.YELLOW + "--- MAIN MENU ---")
+    i = ""
+    while(i != "x"):
+        print("Select option: ")
+        print(" [1] Protect ports.")
+        if getOS() == "Linux":
+            print(" [2] Whitelist addresses.")
+        print(" [x] Exit.")
+        i = input("> ")
+        if i == "1":
+            menu_ports()
+        elif i == "2":
+            print("2")
+        else:
+            print("Invalid option.")
+    if i == "x":
+            print(colors.YELLOW + "\nBye :)" + colors.RESET)
 
 def menu_whitelist():
-	print(colors.YELLOW + "Insert IP addresses, IP address ranges or hostnames to whitelist (type . to finish): ")
-	i = input("> ")
-	while(i != "."):
-		whitelist(i)
+    print(colors.YELLOW + "Insert IP addresses, IP address ranges or hostnames to whitelist (type 'x' to exit): ")
+    i = input("> ")
+    while(i != "."):
+        whitelist(i)
+        i = input("> ")
 
 def menu_ports():
-	i = input(colors.YELLOW + "Input ports to be secured by sshguard, separated by spaces (f.e. 22 80 25): " + colors.RESET)
-	ports = list(map(int, re.findall('\d+', i)))
-	print(ports)
-	if getOS() == "OSX":
-		print("OSX")
-		#setConfigOSX(ports)
-	elif getOS() == "Linux":
-		print("Linux")		
-		#setConfigLinux(ports)
-	else:
-		print(colors.RED + "Sorry but this script only works in Linux and OSX by now :(")
-		exit()
+    print(colors.YELLOW + "Input ports to be secured by sshguard, separated by spaces (f.e.: 22 80 25).")
+    print("Write 'all' to secure all ports. Write 'x' to go back to menu.")
+    i = input("> ")
+    if i == "all":
+        ports = []
+    elif i == "x":
+        return
+    else:
+        ports = list(map(int, re.findall('\d+', i)))
+    print(ports)
+    if getOS() == "OSX":
+        setConfigOSX(ports)
+    elif getOS() == "Linux":	
+        setConfigLinux(ports)
+    else:
+        print(colors.RED + "Sorry but this script only works in Linux and OSX by now :(")
+        exit()
         
 def setConfigOSX(ports):
 	print(colors.YELLOW + "Configuring sshguard in OSX...")
@@ -111,33 +123,32 @@ def setConfigOSX(ports):
 	print("Done." + colors.RESET)
 
 def setConfigLinux(ports):
-	if len(ports): # Si se reciben puertos, ponerlos en la plantilla
-		print(colors.YELLOW + "Securing selected ports...")
-		p1 = "sudo iptables -A INPUT -m multiport -p tcp --destination-ports "
-		p2 = " -j sshguard"
-		for port in ports[:-1]:
-		    p1 += str(port) + ','
-		p1 += str(ports[-1])
-		comando = p1 + p2
-		os.system(comando)
-		os.system("sudo service iptables save")
-		os.system("sudo service iptables restart")
-	else: # Si no se reciben puertos, hacer referencia a todos los puertos
-		print(colors.YELLOW + "Securing all ports...")
-		os.system("sudo iptables -N sshguard")
-		os.system("sudo ip6tables -N sshguard")
-	print("Done." + colors.RESET)
-	return
+    if len(ports): # Si se reciben puertos, ponerlos en la plantilla
+        print(colors.YELLOW + "Securing selected ports...")
+        p1 = "sudo iptables -A INPUT -m multiport -p tcp --destination-ports "
+        p2 = " -j sshguard"
+    for port in ports[:-1]:
+        p1 += str(port) + ','
+        p1 += str(ports[-1])
+        comando = p1 + p2
+        os.system(comando)
+        os.system("sudo service iptables save")
+        os.system("sudo service iptables restart")
+    else: # Si no se reciben puertos, hacer referencia a todos los puertos
+        print(colors.YELLOW + "Securing all ports...")
+        os.system("sudo iptables -N sshguard")
+        os.system("sudo ip6tables -N sshguard")
+        print("Done." + colors.RESET)
+    return
 
+# Solo funciona en linux
 def whitelist(addr):
-	# CAMBIAR!!!!
-	# Comprobar formato ip, rango ip o hostname	
-	try:
-		socket.inet_aton(addr) # legal
-		# Realizar whitelisting
-		print(colors.GREEN + addr + " whitelisted." + colors.RESET)
-	except socket.error:
-		print(colors.RED + "Wrong format. Try again." + colors.RESET)
+    # Comprobar formato ip, rango ip o hostname	
+    if is_valid_ip(addr) or is_valid_hostname(addr) or is_valid_ip_range(addr):
+        os.system("sshguard -w " + addr)
+        print(colors.GREEN + addr + " whitelisted." + colors.RESET)
+    else:
+        print(colors.RED + "Wrong format. Try again." + colors.RESET)
 
 def is_valid_ip(addr):
 	try:
@@ -162,21 +173,19 @@ def is_valid_hostname(hostname):
     return all(allowed.match(x) for x in hostname.split("."))
 
 def main():
-	# Comprobar si se ha ejecutado en modo root
-	#if os.getuid() != 0:
-	#	print(colors.RED + "Please, run as root." + colors.RESET)
-	#	exit()
+    # Comprobar si se ha ejecutado en modo root
+    if os.getuid() != 0:
+        print(colors.RED + "Please, run as root." + colors.RESET)
+        exit()
 
-	try:
-		printBanner()
-		#menu()
-		#whitelist("hola.com")
-		print(is_valid_ip("192.168.1.1"))	
-		print(is_valid_hostname("hola.com"))	
-		exit()
-	except KeyboardInterrupt:
-		print(colors.YELLOW + "\nBye :)" + colors.RESET)
-		exit()
+    try:
+        printBanner()
+        menu()
+        exit()
+
+    except KeyboardInterrupt:
+        print(colors.YELLOW + "\nBye :)" + colors.RESET)
+        exit()
 
 if __name__== "__main__":
-	main()
+    main()
