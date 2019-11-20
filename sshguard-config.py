@@ -39,6 +39,11 @@ def menu():
         print(" [1] Protect ports.")
         if getOS() == "Linux":
             print(" [2] Whitelist addresses.")
+            # print(" [2] Whitelist addresses.")
+            # print(" [2] Whitelist addresses.")
+            # print(" [2] Whitelist addresses.")
+            # print(" [2] Whitelist addresses.")
+            
         print(" [x] Exit.")
         i = input("> ")
         if i == "1":
@@ -145,7 +150,9 @@ def setConfigLinux(ports):
 def whitelist(addr):
     # Comprobar formato ip, rango ip o hostname	
     if is_valid_ip(addr) or is_valid_hostname(addr) or is_valid_ip_range(addr):
-        os.system("sshguard -w " + addr)
+        # NO FUNCIONA
+        #os.system("sudo sshguard -w " + addr)
+        os.spawnl(os.P_DETACH, "sudo sshguard -w " + addr)
         print(colors.GREEN + addr + " whitelisted." + colors.RESET)
     else:
         print(colors.RED + "Wrong format. Try again." + colors.RESET)
