@@ -24,36 +24,45 @@ def getOS():
     return platform.system()
 
 def printBanner():
-	with open(FILEPATH_BANNER, 'r') as file:
-		f = file.read()
-	print(colors.RED + f + "\n")
-	print(colors.BLUE + "Running on " + getOS() + " system") 
-	print("[!] WARNING! This script only will work if sshguard is already installed.")   
-	print(colors.RESET)
+    os.system("clear")
+    with open(FILEPATH_BANNER, 'r') as file:
+        f = file.read()
+    print(colors.RED + f + "\n")
+    print("Created by Ioar Crespo and Guillermo Berasategui")
+    print(colors.BLUE + "Running on " + getOS() + " system") 
+    print("[!] WARNING! This script only will work if sshguard is already installed.")   
+    print(colors.RESET)
 
-def menu():  
+def menu():
     i = ""
     while(i != "x"):
-        print(colors.YELLOW + "--- MAIN MENU ---")
+        print(colors.YELLOW + "---------- MAIN MENU ----------")
         print("Select option: ")
-        print(" [1] Protect ports.")
-        if getOS() == "Linux":
-            print(" [2] Whitelist addresses.")
-            # print(" [2] Whitelist addresses.")
-            # print(" [2] Whitelist addresses.")
-            # print(" [2] Whitelist addresses.")
-            # print(" [2] Whitelist addresses.")
-            
+        print(" [1] Set protected ports.")
+        print(" [2] Whitelist addresses.")
+        print(" [3] Set attack score threshold.")
+        print(" [4] Set blocktime.")
+        print(" [5] Set detection time.")       
         print(" [x] Exit.")
         i = input("> ")
         if i == "1":
-            menu_ports()
+             menu_ports()
         elif i == "2":
-            menu_whitelist()
+            print(colors.RED + "Sorry. Not working until SSHGUARD fixes it.")
+            # menu_whitelist()
+        elif i == "3":
+            print(colors.RED + "Sorry. Not working until SSHGUARD fixes it.")
+            # set_score()
+        elif i == "4":
+            print(colors.RED + "Sorry. Not working until SSHGUARD fixes it.")
+            # set_blocktime()
+        elif i == "5":
+            print(colors.RED + "Sorry. Not working until SSHGUARD fixes it.")
+            # set_detection_time()
+        elif i == "x":
+            print(colors.YELLOW + "Bye :)" + colors.RESET)
         else:
-            print("Invalid option.")
-    if i == "x":
-            print(colors.YELLOW + "\nBye :)" + colors.RESET)
+            print(colors.RED +  "Invalid option.")
 
 def menu_whitelist():
     print(colors.YELLOW + "Insert IP addresses, IP address ranges or hostnames to whitelist (type 'x' to exit): ")
@@ -64,7 +73,7 @@ def menu_whitelist():
 
 def menu_ports():
     print(colors.YELLOW + "Input ports to be secured by sshguard, separated by spaces (f.e.: 22 80 25).")
-    print("Write 'all' to secure all ports. Write 'x' to go back to menu.")
+    print("Type 'all' to secure all ports. Type 'x' to go back to menu.")
     i = input("> ")
     if i == "all":
         ports = []
@@ -74,14 +83,71 @@ def menu_ports():
         ports = list(map(int, re.findall('\d+', i)))
     print(ports)
     if getOS() == "OSX":
-        setConfigOSX(ports)
+        setPortConfigOSX(ports)
     elif getOS() == "Linux":	
-        setConfigLinux(ports)
+        setPortConfigLinux(ports)
     else:
         print(colors.RED + "Sorry but this script only works in Linux and OSX by now :(")
         exit()
-        
-def setConfigOSX(ports):
+
+def set_score():
+    print(colors.YELLOW + "Block attackers when their cumulative attack score exceeds threshold.") 
+    print("Most attacks have a score of 10. Default is 30.")
+    print("Type score number. Type 'x' to exit.")
+    i = input("> ")
+    while True:
+        i = input("> ")
+        if i.isdigit():
+            if getOS() == "Linux":
+                os.system("sudo sshguard -a " + i)
+                print(colors.GREEN + "Done." + colors.RESET)
+            elif getOS() == "OSX":
+                os.system("sudo /usr/local/opt/sshguard/sbin/sshguard -a " + i)
+                print(colors.GREEN + "Done." + colors.RESET)
+        elif i == "x":
+            return
+        else:
+            print("Wrong input. Try again (type 'x' to exit)")
+
+def set_blocktime():
+    print(colors.YELLOW + "Block  attackers  for initially blocktime seconds after exceeding threshold.")
+    print("Subsequent blocks increase by a factor of 1.5. Default is 120.")
+    print("Type seconds number. Type 'x' to exit.")
+    i = input("> ")
+    while True:
+        i = input("> ")
+        if i.isdigit():
+            if getOS() == "Linux":
+                os.system("sudo sshguard -p " + i)
+                print(colors.GREEN + "Done." + colors.RESET)
+            elif getOS() == "OSX":
+                os.system("sudo /usr/local/opt/sshguard/sbin/sshguard -p " + i)
+                print(colors.GREEN + "Done." + colors.RESET)
+        elif i == "x":
+            return
+        else:
+            print("Wrong input. Try again (type 'x' to exit)")
+
+def set_detection_time():
+    print(colors.YELLOW + "Remember  potential attackers for up to detection_time seconds before resetting their score.")
+    print("Default is 1800.")
+    print("Type seconds number. Type 'x' to exit.")
+    i = input("> ")
+    while True:
+        i = input("> ")
+        if i.isdigit():
+            if getOS() == "Linux":
+                os.system("sudo sshguard -s " + i)
+                print(colors.GREEN + "Done." + colors.RESET)
+            elif getOS() == "OSX":
+                os.system("sudo /usr/local/opt/sshguard/sbin/sshguard -s " + i)
+                print(colors.GREEN + "Done." + colors.RESET)
+        elif i == "x":
+            return
+        else:
+            print("Wrong input. Try again (type 'x' to exit)")
+
+def setPortConfigOSX(ports):
 	print(colors.YELLOW + "Configuring sshguard in OSX...")
 	# Recibir plantilla de configuración
 	with open(FILEPATH_OSX_PLANT, 'r') as file:
@@ -125,9 +191,9 @@ def setConfigOSX(ports):
 	# Ejecutar sshguard
 	print("Executing sshguard...")
 	os.system("sudo launchctl load /Library/LaunchDaemons/homebrew.mxcl.sshguard.plist")
-	print("Done." + colors.RESET)
+	print(colors.GREEN + "Done." + colors.RESET)
 
-def setConfigLinux(ports):
+def setPortConfigLinux(ports):
     if len(ports): # Si se reciben puertos, ponerlos en la plantilla
         print(colors.YELLOW + "Securing selected ports...")
         p1 = "sudo iptables -A INPUT -m multiport -p tcp --destination-ports "
@@ -137,23 +203,28 @@ def setConfigLinux(ports):
         p1 += str(ports[-1])
         comando = p1 + p2
         os.system(comando)
-        os.system("sudo service iptables save")
-        os.system("sudo service iptables restart")
+        # os.system("sudo service iptables save")
+        # os.system("sudo service iptables restart")
+        os.system("sudo /etc/init.d/iptables save")
+        os.system("sudo /etc/init.d/iptables restart")
+        # os.system("sudo service networking restart") # (on an Ubuntu Desktop machine)
     else: # Si no se reciben puertos, hacer referencia a todos los puertos
         print(colors.YELLOW + "Securing all ports...")
         os.system("sudo iptables -N sshguard")
         os.system("sudo ip6tables -N sshguard")
-        print("Done." + colors.RESET)
+        print(colors.GREEN + "Done." + colors.RESET)
     return
 
 # Solo funciona en linux
 def whitelist(addr):
     # Comprobar formato ip, rango ip o hostname	
     if is_valid_ip(addr) or is_valid_hostname(addr) or is_valid_ip_range(addr):
-        # NO FUNCIONA
-        #os.system("sudo sshguard -w " + addr)
-        os.spawnl(os.P_DETACH, "sudo sshguard -w " + addr)
-        print(colors.GREEN + addr + " whitelisted." + colors.RESET)
+        if getOS() == "Linux":
+            os.system("sudo sshguard -w " + addr)
+            print(colors.GREEN + addr + " whitelisted." + colors.RESET)
+        elif getOS() == "OSX":
+            os.system("sudo /usr/local/opt/sshguard/sbin/sshguard -w " + addr)
+            print(colors.GREEN + addr + " whitelisted." + colors.RESET)
     else:
         print(colors.RED + "Wrong format. Try again." + colors.RESET)
 
@@ -180,6 +251,10 @@ def is_valid_hostname(hostname):
     return all(allowed.match(x) for x in hostname.split("."))
 
 def main():
+    # Si el script se ejecuta en Windows cerrar, porque no es compatible
+    if getOS() == "Windows":
+        exit()
+
     # Comprobar si se ha ejecutado en modo root
     if os.getuid() != 0:
         print(colors.RED + "Please, run as root." + colors.RESET)
@@ -189,9 +264,8 @@ def main():
         printBanner()
         menu()
         exit()
-
     except KeyboardInterrupt:
-        print(colors.YELLOW + "\nBye :)" + colors.RESET)
+        print(colors.YELLOW + "\nExiting...\nBye :)" + colors.RESET)
         exit()
 
 if __name__== "__main__":
