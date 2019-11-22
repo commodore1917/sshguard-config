@@ -203,11 +203,7 @@ def setPortConfigLinux(ports):
         p1 += str(ports[-1])
         comando = p1 + p2
         os.system(comando)
-        # os.system("sudo service iptables save")
-        # os.system("sudo service iptables restart")
-        os.system("sudo /etc/init.d/iptables save")
-        os.system("sudo /etc/init.d/iptables restart")
-        # os.system("sudo service networking restart") # (on an Ubuntu Desktop machine)
+        os.system("sudo service networking restart") # (Ubuntu)
     else: # Si no se reciben puertos, hacer referencia a todos los puertos
         print(colors.YELLOW + "Securing all ports...")
         os.system("sudo iptables -N sshguard")
