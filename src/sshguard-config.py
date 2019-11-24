@@ -4,9 +4,9 @@ import platform
 import socket
 import ipaddress
 
-FILEPATH_OSX_PLANT = "~/resources/osx-conf.txt"
+FILEPATH_OSX_PLANT = os.path.dirname(__file__) + "/resources/osx-conf.txt"
 FILEPATH_OSX_CONFIG = "/etc/pf.conf"
-FILEPATH_BANNER = "~/resources/banner.txt"
+FILEPATH_BANNER = os.path.dirname(__file__) + "/resources/banner.txt"
 PLANTILLA =  "### __SSHGUARD-CONFIG___ ###"
 
 class colors:
