@@ -1,2 +1,3 @@
-/presentacion
-/docs
+presentacion/
+docs/
+.DS_Store
